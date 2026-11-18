@@ -11,8 +11,21 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
- * @author cbcar
+ * Servicio Cliente para el consumo de la API REST de Empleados.
+ * 
+ * GUÍA DE ESTUDIO - CONSUMO DE SERVICIOS REST EN CLIENTE (JAX-RS Client):
+ * 1. Patrón Service Proxy: Encapsula las llamadas HTTP hacia el Web Service backend.
+ * 2. Manejo de Autenticación y Tokens JWT:
+ *    - getUsuario(): Invoca request.getToken(). El backend genera el JWT y lo envía en el encabezado
+ *      'Authorization'. La clase Request lo captura y almacena en AppContext ("Token").
+ *    - renovarToken(): Invoca request.getRenewal() para enviar el token secundario de renovación (rnt)
+ *      y actualizar el token principal antes de que expire.
+ * 3. Deserialización de Entidades y Colecciones:
+ *    - readEntity(EmpleadoDto.class): Deserializa un objeto individual desde el JSON devuelto.
+ *    - readEntity(new GenericType<List<EmpleadoDto>>() {}): Usa GenericType de JAX-RS para deserializar
+ *      listas polimórficas sin perder el tipo genérico en tiempo de ejecución.
+ * 
+ * @author cbcar / Luis Elizondo (Anotaciones de Estudio)
  */
 public class EmpleadoService {
     

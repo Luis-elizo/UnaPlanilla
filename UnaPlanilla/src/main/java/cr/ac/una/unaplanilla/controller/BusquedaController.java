@@ -90,6 +90,7 @@ public class BusquedaController extends Controller implements Initializable {
         return resultado;
     }
     
+    // Configuración dinámica de columnas del TableView y consumo del servicio de búsqueda
     public void busquedaEmpleados() {
         try {
             lblTitulo.setText("Búsqueda de Empleados");

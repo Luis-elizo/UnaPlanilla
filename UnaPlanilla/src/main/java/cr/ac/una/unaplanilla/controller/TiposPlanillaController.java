@@ -48,9 +48,27 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 /**
- * FXML Controller class
- *
- * @author cbcar
+ * Controlador JavaFX para la pantalla de Tipos de Planilla (Patrón Maestro-Detalle Completo en Cliente).
+ * 
+ * GUÍA DE ESTUDIO - MAESTRO-DETALLE Y COMPONENTES AVANZADOS JAVAFX:
+ * 1. TabPane con Múltiples Pestañas:
+ *    - Pestaña 1: Datos generales del Tipo de Planilla (Maestro).
+ *    - Pestaña 2: Inclusión de Empleados (Detalle M:N).
+ *    - Pestaña 3: Configuración de Tipos de Movimiento (Detalle 1:N).
+ * 2. Patrón de Bindeo Bidireccional Seguro:
+ *    - bindTipoPlanilla(): Escucha cambios en tipoPlanillaProperty. Cuando se asigna un nuevo DTO,
+ *      primero desvincula (unbindBidirectional) los controles del DTO anterior para evitar memory leaks
+ *      o sobreescrituras accidentales, y luego vincula (bindBidirectional) las propiedades del nuevo DTO.
+ * 3. Renderizado Personalizado en TableView (TableCell con Botones):
+ *    - ButtonCell y ButtonCellMovimiento: Sobrescriben TableCell para incrustar un botón gráfico
+ *      en cada fila de la tabla. Al presionar el botón de eliminar, no solo se remueve visualmente
+ *      de la TableView, sino que se agrega a la lista de eliminados del DTO (getEmpleadosEliminados()),
+ *      la cual viajará en el JSON hacia el Backend para su eliminación física o lógica.
+ * 4. Sincronización Post-Guardado:
+ *    - Al invocar guardarTipoPlanilla(), si la respuesta es exitosa, se vuelve a llamar a
+ *      cargarTipoPlanilla(id) para refrescar todos los datos y llaves generadas desde el servidor.
+ * 
+ * @author cbcar / Luis Elizondo (Anotaciones de Estudio)
  */
 public class TiposPlanillaController extends Controller implements Initializable {
 

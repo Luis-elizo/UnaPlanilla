@@ -96,21 +96,24 @@ public class EmpleadoService {
         }
     }
 
+    // Ciclo de vida JPA: UPDATE (merge) si ya tiene ID, o INSERT (persist) si es nuevo
     public Respuesta guardarEmpleado(EmpleadoDto empleadoDto) {
         try {
             Empleado empleado;
             if (empleadoDto.getId() != null && empleadoDto.getId() > 0) {
+                // Modificación: buscar entidad existente, actualizar campos y llamar a merge()
                 empleado = em.find(Empleado.class, empleadoDto.getId());
                 if (empleado == null) {
                     return new Respuesta(false, CodigoRespuesta.ERROR_NOENCONTRADO, "No se encrontró el empleado a modificar.", "guardarEmpleado NoResultException");
                 }
                 empleado.actualizar(empleadoDto);
-                empleado = em.merge(empleado);
+                empleado = em.merge(empleado); // Sincroniza cambios (UPDATE)
             } else {
+                // Inserción: crear nueva entidad y llamar a persist()
                 empleado = new Empleado(empleadoDto);
-                em.persist(empleado);
+                em.persist(empleado); // Registra nueva entidad administrada (INSERT)
             }
-            em.flush();
+            em.flush(); // Fuerza la ejecución inmediata de la sentencia SQL en BD
             return new Respuesta(true, CodigoRespuesta.CORRECTO, "", "", "Empleado", new EmpleadoDto(empleado));
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Ocurrio un error al guardar el empleado.", ex);
@@ -119,19 +122,20 @@ public class EmpleadoService {
     }
     
 
+    // Eliminación JPA: buscar entidad y llamar a remove()
     public Respuesta eliminarEmpleado(Long id) {
         try {
             Empleado empleado;
             if (id != null && id > 0) {
-                empleado = em.find(Empleado.class, id);
+                empleado = em.find(Empleado.class, id); // Debe estar en estado administrado para poder removerse
                 if (empleado == null) {
                     return new Respuesta(false, CodigoRespuesta.ERROR_NOENCONTRADO, "No se encrontró el empleado a eliminar.", "eliminarEmpleado NoResultException");
                 }
-                em.remove(empleado);
+                em.remove(empleado); // Marca la entidad para eliminación física (DELETE)
             } else {
                 return new Respuesta(false, CodigoRespuesta.ERROR_NOENCONTRADO, "Debe cargar el empleado a eliminar.", "eliminarEmpleado NoResultException");
             }
-            em.flush();
+            em.flush(); // Ejecuta el DELETE en la BD
             return new Respuesta(true, CodigoRespuesta.CORRECTO, "", "");
         } catch (Exception ex) {
             if (ex.getCause() != null && ex.getCause().getCause().getClass() == SQLIntegrityConstraintViolationException.class) {

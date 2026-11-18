@@ -30,8 +30,23 @@ import java.math.BigInteger;
 import java.util.Collection;
 
 /**
- *
- * @author cbcar
+ * Entidad JPA representativa del Maestro en Maestro-Detalle y dueña de relaciones complejas.
+ * 
+ * GUÍA DE ESTUDIO - RELACIONES JPA AVANZADAS (Pregunta fija de examen):
+ * 1. @JoinTable (Relación Muchos a Muchos - Dueño de la relación):
+ *    - @ManyToMany(fetch = FetchType.LAZY): La entidad TipoPlanilla es dueña de la relación N:M.
+ *    - name = "PLAM_EMPLEADOSPLANILLA": Tabla intermedia o pivote en la BD.
+ *    - joinColumns: Llave foránea que apunta a la tabla actual (TPLA_ID -> EXP_IDTPLA).
+ *    - inverseJoinColumns: Llave foránea que apunta a la entidad asociada (EMP_ID -> EXP_IDEMP).
+ * 2. @OneToMany(cascade = CascadeType.ALL, mappedBy = "tmpIdpla"):
+ *    - Relación Uno a Muchos con TipMovPlanilla.
+ *    - mappedBy indica que el campo de la llave foránea se gestiona en TipMovPlanilla.
+ *    - CascadeType.ALL propaga operaciones (persist, merge, remove) a los hijos si se configuran.
+ * 3. Uso de funciones SQL dentro de JPQL:
+ *    - FUNCTION('TO_CHAR', t.planillaPorMes): Permite invocar funciones nativas del motor SQL (Oracle)
+ *      directamente dentro de las NamedQueries de JPQL.
+ * 
+ * @author cbcar / Luis Elizondo (Anotaciones de Estudio)
  */
 @Entity
 @Table(name = "PLAM_TIPOPLANILLAS", schema = "UNA")
@@ -57,11 +72,13 @@ public class TipoPlanilla implements Serializable {
     @NotNull
     @Column(name = "TPLA_VERSION")
     private BigInteger tplaVersion;
+    
+    // Relación 1:N con la tabla de movimientos de planilla
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "tmpIdpla")
     private Collection<TipMovPlanilla> plamTipmovplanillaCollection;
 
     private static final long serialVersionUID = 1L;
-    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+    
     @Id
     @SequenceGenerator(name = "PLAM_TIPOPLANILLAS_TPLA_ID_GENERATOR", sequenceName = "una.PLAM_TIPOPLANILLAS_SEQ01", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PLAM_TIPOPLANILLAS_TPLA_ID_GENERATOR")
@@ -77,6 +94,8 @@ public class TipoPlanilla implements Serializable {
     @Basic(optional = false)
     @Column(name = "TPLA_ESTADO")
     private String estado;
+    
+    // Mapeo físico de la tabla asociativa Muchos a Muchos (PLAM_EMPLEADOSPLANILLA)
     @JoinTable(name = "PLAM_EMPLEADOSPLANILLA", joinColumns = {
         @JoinColumn(name = "EXP_IDTPLA", referencedColumnName = "TPLA_ID")}, inverseJoinColumns = {
         @JoinColumn(name = "EXP_IDEMP", referencedColumnName = "EMP_ID")})

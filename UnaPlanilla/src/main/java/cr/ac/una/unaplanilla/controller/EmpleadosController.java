@@ -130,6 +130,7 @@ public class EmpleadosController extends Controller implements Initializable {
         txtId.requestFocus();
     }
 
+    // Enlace de datos bidireccional (JavaFX Data Binding): sincroniza campos UI con propiedades del DTO
     private void bindEmpleado() {
         try {
             empleadoProperty.addListener((obs, oldVal, newVal) -> {

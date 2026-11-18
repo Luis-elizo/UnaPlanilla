@@ -17,10 +17,11 @@ import java.util.concurrent.TimeUnit;
 public class JwTokenHelper {
 
     private static JwTokenHelper jwTokenHelper = null;
-    private static final long EXPIRATION_LIMIT = 1;
-    private static final long EXPIRATION_RENEWAL_LIMIT = 2;
+    // Tiempos de expiración (en minutos):
+    private static final long EXPIRATION_LIMIT = 1;          // Token principal de acceso
+    private static final long EXPIRATION_RENEWAL_LIMIT = 2;  // Token de renovación (rnt)
     private static final String AUTHENTICATION_SCHEME = "Bearer ";
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256); // Clave secreta para firma HMAC
 
     private JwTokenHelper() {
     }
@@ -32,16 +33,17 @@ public class JwTokenHelper {
         return jwTokenHelper;
     }
 
+    // Genera el JWT principal y embebe el token de renovación en el claim 'rnt'
     public String generatePrivateKey(String username) {
         return AUTHENTICATION_SCHEME + Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(getExpirationDate(false))
+                .setExpiration(getExpirationDate(false)) // Expiración corta (1 min)
                 .claim("rnt", AUTHENTICATION_SCHEME + Jwts.builder()
                         .setSubject(username)
                         .setIssuedAt(new Date())
-                        .setExpiration(getExpirationDate(true))
-                        .claim("rnw",true)
+                        .setExpiration(getExpirationDate(true)) // Expiración larga (2 min)
+                        .claim("rnw", true) // Marca que identifica este token como de renovación
                         .signWith(key)
                         .compact())
                 .signWith(key)

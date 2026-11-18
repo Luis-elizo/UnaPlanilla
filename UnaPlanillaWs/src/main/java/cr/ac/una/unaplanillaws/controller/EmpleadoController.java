@@ -30,18 +30,19 @@ import java.util.logging.Logger;
  *
  * @author Dominique
  */
-@Secure
+@Secure // Requiere autenticación JWT en todos sus métodos (interceptado por SecurityFilter)
 @Tag(name = "Empleados", description = "Operaciones sobre empleados")
 @SecurityRequirement(name = "jwt-auth")
-@Path("Empleados")
+@Path("Empleados") // URI base del controlador: /ws/Empleados
 public class EmpleadoController {
     
     @Context
-    SecurityContext securityContext;
+    SecurityContext securityContext; // Inyección del contexto de seguridad (usuario autenticado)
     
     @EJB
-    EmpleadoService empleadoService;
+    EmpleadoService empleadoService; // Inyección del EJB con la lógica de negocio
     
+    // Endpoint público (excluido en SecurityFilter) para login y obtención del JWT
     @GET
     @Path("/usuario/{usuario}/{clave}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -66,6 +67,7 @@ public class EmpleadoController {
         }
     }
     
+    // Consulta de un único empleado por ID (Lectura idempotente - Retorna DTO en JSON)
     @GET
     @Path("/empleado/{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -86,6 +88,7 @@ public class EmpleadoController {
         }
     }
     
+    // Consulta filtrada por criterios: se usa GenericEntity para preservar el tipo genérico List<EmpleadoDto> en JSON
     @GET
     @Path("/empleado/{cedula}/{nombre}/{pApellido}/{sApellido}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -100,6 +103,7 @@ public class EmpleadoController {
                 return Response.status(respuesta.getCodigoRespuesta().getValue())
                         .entity(respuesta.getMensaje()).build();
             }
+            // GenericEntity permite que el MessageBodyWriter de JAX-RS sepa serializar la lista genérica
             return Response.ok(
                     new GenericEntity<List<EmpleadoDto>>(
                     (List<EmpleadoDto>) respuesta.getResultado("Empleados")){})
@@ -112,6 +116,7 @@ public class EmpleadoController {
         }
     }
 
+    // Inserción / Actualización: recibe el cuerpo JSON con @Consumes y valida con Bean Validation (@Valid)
     @POST
     @Path("/empleado")
     @Produces(MediaType.APPLICATION_JSON)
@@ -133,6 +138,7 @@ public class EmpleadoController {
         }
     }
 
+    // Eliminación física/lógica por ID usando verbo DELETE
     @DELETE
     @Path("/empleado/{id}")
     public Response eliminarEmpleado(@PathParam("id") Long id) {
@@ -153,12 +159,14 @@ public class EmpleadoController {
         }
     }
     
+    // Renovación de JWT: el SecurityFilter valida que el token recibido tenga claim 'rnw: true'
     @GET
     @Path("/renovar")
     @Produces(MediaType.APPLICATION_JSON)
     public Response renovarToken() {
         
         try {
+            // Se extrae el usuario autenticado que el SecurityFilter inyectó en el Principal
             String usuario = securityContext.getUserPrincipal().getName();
             if(usuario != null && !usuario.isBlank()){
                 return Response.ok(JwTokenHelper.getInstance()

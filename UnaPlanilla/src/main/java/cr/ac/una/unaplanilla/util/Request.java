@@ -205,26 +205,32 @@ public class Request {
         return null;
     }
 
+    // Verificación automática de expiración de token en cada petición (Cliente HTTP)
     private boolean verifyTokenExp() {
         if (AppContext.getInstance().get("Token") == null) {
-            return true;//No se ha logeado.
+            return true; // Petición pública (usuario aún no autenticado)
         }
         JsonObject payload = getPayloadToken(AppContext.getInstance().get("Token").toString());
+        // 1. Si el token principal de acceso aún no ha vencido, continúa normalmente
         if (payload != null && payload.containsKey("exp") && payload.getJsonNumber("exp").longValue() > System.currentTimeMillis() / 1000) {
             return true;
         } else {
+            // 2. Si el token principal expiró, verificar si el token de renovación 'rnt' sigue vigente
             if (payload != null && payload.containsKey("rnt")) {
                 JsonObject renewalPayload = getPayloadToken(payload.getString("rnt"));
                 if (renewalPayload != null && renewalPayload.containsKey("exp") && renewalPayload.getJsonNumber("exp").longValue() > System.currentTimeMillis() / 1000) {
+                    // 3. Invocar al servidor (/ws/Empleados/renovar) para obtener un token nuevo
                     EmpleadoService empleadoService = new EmpleadoService();
                     Respuesta respuesta = empleadoService.renovarToken();
                     if (respuesta.getEstado()) {
+                        // 4. Actualizar sesión y cabecera Authorization con el nuevo token
                         AppContext.getInstance().set("Token", respuesta.getResultado("Token").toString());
                         setHeader("Authorization", respuesta.getResultado("Token").toString());
                         return true;
                     }
                 }
             }
+            // 5. Ambos tokens expiraron: sesión caducada
             response = Response.status(401, "El token a expirado.").build();
             return false;
         }

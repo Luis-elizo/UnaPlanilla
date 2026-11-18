@@ -39,14 +39,16 @@ public class SecurityFilter implements ContainerRequestFilter{
     @Override
     public void filter(ContainerRequestContext request) throws IOException {
         Method method = resourceInfo != null ? resourceInfo.getResourceMethod() : null;
+        
+        // 1. Exclusión: el endpoint de autenticación (login) es público y no requiere token
         if (method != null && method.getName().equalsIgnoreCase(AUTHORIZATION_SERVICE_PATH)) {
             return;
         }
 
-        // Get the Authorization header from the request
+        // 2. Extraer la cabecera Authorization enviada por el cliente
         String authorizationHeader = request.getHeaderString(HttpHeaders.AUTHORIZATION);
 
-        // Validate the Authorization header
+        // 3. Validar presencia y formato del esquema 'Bearer <token>'
         if (authorizationHeader == null || authorizationHeader.isEmpty()) {
             abortWithUnauthorized(request, "Authorization is missing in header");
             return;
@@ -55,20 +57,21 @@ public class SecurityFilter implements ContainerRequestFilter{
             return;
         }
         
-        // Extract the token from the Authorization header
+        // 4. Extraer el token puro retirando el prefijo 'Bearer '
         String token = authorizationHeader.substring(AUTHENTICATION_SCHEME.length()).trim();
 
         try {
-
-            // Validate the token
+            // 5. Validar firma criptográfica y expiración con la clave secreta
             try {
                 Claims claims = jwTokenHelper.claimKey(token);
                 
+                // Si el token es de renovación (rnw: true), SOLO puede consumir el endpoint 'renovarToken'
                 if (claims.containsKey("rnw") && (Boolean)claims.get("rnw")== true && (method == null || !method.getName().equalsIgnoreCase(RENEWAL_SERVICE_PATH))){
                     abortWithUnauthorized(request, "Invalid authorization");
                     return;
                 }
                 
+                // 6. Token válido: inyectar identidad (username) en el SecurityContext
                 final SecurityContext currentSecurityContext = request.getSecurityContext();
                 request.setSecurityContext(new SecurityContext() {
 

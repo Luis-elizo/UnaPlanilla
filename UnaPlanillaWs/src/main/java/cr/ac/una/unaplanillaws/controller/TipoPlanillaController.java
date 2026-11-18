@@ -27,8 +27,23 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
- * @author Dominique
+ * Controlador REST JAX-RS para la gestión de Tipos de Planilla.
+ * 
+ * GUÍA DE ESTUDIO - CONCEPTOS DE ARQUITECTURA REST / JAX-RS:
+ * 1. @Path("TipoPlanilla"): Define el recurso base expuesto en la URL (/unaplanillaws/TipoPlanilla).
+ * 2. @EJB: Inyección de dependencia del componente de lógica de negocio (EJB Stateless).
+ * 3. Verbos HTTP:
+ *    - @GET: Recuperación idempotente y segura de recursos sin efectos colaterales.
+ *    - @POST: Creación o actualización (guardado) de recursos enviando cuerpo JSON.
+ *    - @DELETE: Eliminación idempotente de recursos identificados por @PathParam.
+ * 4. Tipos MIME:
+ *    - @Consumes(MediaType.APPLICATION_JSON): Espera JSON en el payload (Content-Type: application/json).
+ *    - @Produces(MediaType.APPLICATION_JSON): Retorna JSON en la respuesta (Accept: application/json).
+ * 5. GenericEntity<List<T>>:
+ *    - Necesario al retornar listas genéricas para que el proveedor de serialización JSON-B / Jackson
+ *      pueda conservar la información del tipo de datos en tiempo de ejecución (evita Type Erasure de Java).
+ * 
+ * @author Dominique / Luis Elizondo (Anotaciones de Estudio)
  */
 @Path("TipoPlanilla")
 public class TipoPlanillaController {
@@ -36,6 +51,10 @@ public class TipoPlanillaController {
     @EJB
     TipoPlanillaService tipoPlanillaService;
     
+    /**
+     * Consulta un TipoPlanilla por su llave primaria ID.
+     * Endpoint: GET /TipoPlanilla/tipoPlanilla/{id}
+     */
     @GET
     @Path("/tipoPlanilla/{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -56,6 +75,13 @@ public class TipoPlanillaController {
         }
     }
     
+    /**
+     * Consulta filtrada con múltiples parámetros en la URL.
+     * Endpoint: GET /TipoPlanilla/tipoPlanilla/{codigo}/{descripcion}/{plaxmes}/{idemp}/{cedula}
+     * 
+     * NOTA: Utiliza GenericEntity para preservar el tipo concreto List<TipoPlanillaDto>
+     * frente al borrado de tipos genéricos de Java durante la serialización JSON.
+     */
     @GET
     @Path("/tipoPlanilla/{codigo}/{descripcion}/{plaxmes}/{idemp}/{cedula}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -83,6 +109,11 @@ public class TipoPlanillaController {
         }
     }
 
+    /**
+     * Guarda o actualiza un TipoPlanilla completo con sus detalles.
+     * Endpoint: POST /TipoPlanilla/tipoPlanilla
+     * @param tipoPlanillaDto Recibe el DTO deserializado automáticamente desde el JSON del body.
+     */
     @POST
     @Path("/tipoPlanilla")
     @Produces(MediaType.APPLICATION_JSON)
@@ -104,6 +135,10 @@ public class TipoPlanillaController {
         }
     }
 
+    /**
+     * Elimina un TipoPlanilla por ID.
+     * Endpoint: DELETE /TipoPlanilla/tipoPlanilla/{id}
+     */
     @DELETE
     @Path("/tipoPlanilla/{id}")
     public Response eliminarTipoPlanilla(@PathParam("id") Long id) {

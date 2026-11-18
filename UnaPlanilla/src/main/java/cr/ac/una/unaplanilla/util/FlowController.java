@@ -24,6 +24,23 @@ import cr.ac.una.unaplanilla.controller.Controller;
 import io.github.palexdev.materialfx.css.themes.MFXThemeManager;
 import io.github.palexdev.materialfx.css.themes.Themes;
 
+/**
+ * Controlador de Flujo y Navegación de Vistas JavaFX (Patrones SINGLETON + FRONT CONTROLLER / CACHE).
+ * 
+ * GUÍA DE ESTUDIO - NAVEGACIÓN Y GESTIÓN DE VISTAS (JAVAFX):
+ * 1. Patrón Front Controller: Centraliza la carga y transición entre pantallas (vistas FXML).
+ * 2. Patrón Flyweight / Caché de Vistas:
+ *    - loaders HashMap almacena instancias de FXMLLoader para no recargar ni reconstruir el árbol
+ *      de nodos visuales cada vez que el usuario navega a una pantalla.
+ * 3. Inyección dinámica en el contenedor principal:
+ *    - goView(name, "Center", accion): Obtiene el nodo raíz de la vista (loader.getRoot()) y lo coloca
+ *      en la región central del BorderPane (PrincipalView), llamando a controller.initialize().
+ * 4. Gestión de Ventanas Modales:
+ *    - goViewInWindowModal(): Crea un nuevo Stage secundario con Modality.WINDOW_MODAL, bloqueando
+ *      la interacción con la ventana padre (ej. pantallas de Búsqueda de Empleados/Planillas).
+ * 
+ * @author Carlos Carranza / Luis Elizondo (Anotaciones de Estudio)
+ */
 public class FlowController {
 
     private static FlowController INSTANCE = null;

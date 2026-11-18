@@ -24,8 +24,26 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
 /**
- *
- * @author Carlos
+ * Entidad JPA mapeada a la tabla UNA.PLAM_EMPLEADOS.
+ * 
+ * GUÍA DE ESTUDIO - ANOTACIONES JPA FUNDAMENTALES (Teoría y Práctica de Examen):
+ * 1. @Entity: Marca la clase Java como una entidad persistente gestionada por JPA / EclipseLink.
+ * 2. @Table(name, schema): Mapea la clase a la tabla física en el esquema de base de datos Oracle.
+ * 3. @NamedQueries: Consultas estáticas precompiladas escritas en JPQL (Java Persistence Query Language):
+ *    - JPQL opera sobre Objetos/Atributos Java ("Empleado e", "e.nombre"), NO sobre tablas/columnas SQL directas.
+ *    - @QueryHint("eclipselink.refresh", "true"): Obliga al proveedor JPA a omitir la caché de primer/segundo nivel
+ *      y consultar directamente a la base de datos para obtener datos frescos.
+ * 4. @Id & @SequenceGenerator:
+ *    - Define la clave primaria autogenerada usando una secuencia de base de datos (GenerationType.SEQUENCE).
+ *    - allocationSize = 1: Crucial en Oracle para evitar saltos o discrepancias con el incremento de la secuencia.
+ * 5. @Version (Bloqueo Optimista / Optimistic Locking):
+ *    - Evita que dos usuarios sobreescriban los datos del otro simultáneamente (Lost Updates).
+ *    - Si dos transacciones intentan actualizar la misma versión, la segunda falla con OptimisticLockException.
+ * 6. @ManyToMany(mappedBy = "empleados", fetch = FetchType.LAZY):
+ *    - mappedBy indica que esta entidad es el LADO INVERSO (o pasivo) de la relación. El dueño es TipoPlanilla.
+ *    - FetchType.LAZY: Carga perezosa. La lista de tiposPlanilla solo se consulta si se accede explícitamente.
+ * 
+ * @author Carlos Carranza / Luis Elizondo (Anotaciones de Estudio)
  */
 @Entity
 @Table(name = "PLAM_EMPLEADOS", schema = "UNA")
@@ -38,49 +56,66 @@ import jakarta.persistence.Version;
 public class Empleado implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+    
+    // Llave Primaria gestionada por secuencia Oracle (una.PLAM_EMPLEADOS_SEQ01)
     @Id
     @SequenceGenerator(name = "PLAM_EMPLEADOS_EMP_ID_GENERATOR", sequenceName = "una.PLAM_EMPLEADOS_SEQ01", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PLAM_EMPLEADOS_EMP_ID_GENERATOR")
     @Basic(optional = false)
     @Column(name = "EMP_ID")
     private Long id;
+    
     @Basic(optional = false)
     @Column(name = "EMP_NOMBRE")
     private String nombre;
+    
     @Basic(optional = false)
     @Column(name = "EMP_PAPELLIDO")
     private String primerApellido;
+    
     @Basic(optional = false)
     @Column(name = "EMP_SAPELLIDO")
     private String segundoApellido;
+    
     @Basic(optional = false)
     @Column(name = "EMP_CEDULA")
     private String cedula;
+    
     @Basic(optional = false)
     @Column(name = "EMP_GENERO")
     private String genero;
+    
     @Column(name = "EMP_CORREO")
     private String correo;
+    
     @Basic(optional = false)
     @Column(name = "EMP_ADMINISTRADOR")
     private String administrador;
+    
     @Column(name = "EMP_USUARIO")
     private String usuario;
+    
     @Column(name = "EMP_CLAVE")
     private String clave;
+    
     @Basic(optional = false)
     @Column(name = "EMP_FINGRESO")
     private LocalDate fechaIngreso;
+    
     @Column(name = "EMP_FSALIDA")
     private LocalDate fechaSalida;
+    
     @Basic(optional = false)
     @Column(name = "EMP_ESTADO")
     private String estado;
+    
+    // Control de Concurrencia Optimista (JPA incrementa automáticamente este campo en cada UPDATE)
     @Version
     @Basic(optional = false)
     @Column(name = "EMP_VERSION")
     private Long version;
+    
+    // Relación Many-to-Many: Lado Inverso. Colección cargada bajo demanda (LAZY)
     @ManyToMany(mappedBy = "empleados", fetch = FetchType.LAZY)
     private List<TipoPlanilla> tiposPlanilla;
 
