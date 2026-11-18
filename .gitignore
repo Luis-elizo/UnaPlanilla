@@ -1,0 +1,23 @@
+# Compiled class files
+**/target/
+*.class
+
+# Log files
+*.log
+
+# NetBeans IDE
+**/nbproject/private/
+**/build/
+**/dist/
+.nb-cache/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
